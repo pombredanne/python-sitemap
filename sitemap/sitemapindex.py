@@ -13,7 +13,7 @@ class SitemapIndex(object):
     def from_url(url, **kwargs):
         """ Create a sitemap from an url """
         u = urlopen(url)
-        if u.headers.has_key("content-type") and u.headers["content-type"].lower() == "application/x-gzip":
+        if u.headers.has_key("content-type") and u.headers["content-type"].lower().startswith("application/x-gzip"):
             u = GzipFile(fileobj=StringIO(u.read()))
         return SitemapIndex(u, url, **kwargs)
 
