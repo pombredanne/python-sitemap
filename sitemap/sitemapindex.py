@@ -1,3 +1,4 @@
+#import string
 
 from lxml import etree
 from urllib import urlopen
@@ -7,7 +8,11 @@ from gzip import GzipFile
 from urlset import *
 from exceptions import *
 
+
 class SitemapIndex(object):
+    # This value must be assigned befroe calling to use this class
+    # It is a regExp indicated how the sitemap url would look like - this is used to skip unwanted site map files.
+    urlPattern = ''
 
     @staticmethod
     def from_url(url, **kwargs):
@@ -40,19 +45,48 @@ class SitemapIndex(object):
             schema = etree.XMLSchema(file=open(self.get_schema_path()))
         else:
             schema = None
+        print "start parsing %s" % self._handle
         context = etree.iterparse(self._handle, events=('end',), schema=schema)
 
         location = ''
-        for action, elem in context:
-            tag = self._remove_ns(elem.tag)
-            if tag == 'sitemap' and location:
-                try:
-                    yield UrlSet.from_url(location, validate=self._validate)
-                except:
-                    location = ''
-                    continue
-            elif tag == 'loc':
-                location = elem.text
+
+        while True:
+            try:
+                action, elem = context.next()
+                tag = self._remove_ns(elem.tag)
+                if tag == 'sitemap' and location:
+                    try:
+                        yield UrlSet.from_url(location, validate=self._validate)
+                    except:
+                        location = ''
+                        continue
+                elif tag == 'loc':
+                    location = elem.text
+                    if not re.match(SitemapIndex.urlPattern, location):
+                        location = ''
+                        continue
+
+            except (etree.XMLSyntaxError, StopIteration):
+                break
+
+#        try loading from file instead of url - but with issue.
+#        for action, elem in context:
+#            tag = self._remove_ns(elem.tag)
+#            if tag == 'sitemap' and location:
+#                try:
+#                    index = string.rindex(location, "/") + 1
+#                    indexFile = SitemapIndex.basePath + location[index:]
+#                    print indexFile
+#                    yield UrlSet.from_file(indexFile, validate=self._validate)
+##                    yield UrlSet.from_url(location, validate=self._validate)
+#                except:
+#                    location = ''
+#                    continue
+#            elif tag == 'loc':
+#                location = elem.text
+#                if not re.match(SitemapIndex.urlPattern, location):
+#                    location = ''
+#                    continue
         del context
         del schema
 

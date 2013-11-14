@@ -20,8 +20,12 @@ class UrlSet(object):
     def from_url(url, **kwargs):
         """ Create an urlset from an url """
         u = urlopen(url)
+        # print "urlset.py: %s" % url
+        print u.headers["content-type"]
         if u.headers.has_key("content-type") and u.headers["content-type"].lower().startswith("application/x-gzip"):
             u = GzipFile(fileobj=StringIO(u.read()))
+        elif u.headers["content-type"].lower().startswith("text/html"):
+            print u.read()
         return UrlSet(u, url, **kwargs)
 
     @staticmethod
