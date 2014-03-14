@@ -14,6 +14,6 @@ setup(
     packages=['sitemap'],
     package_data={'sitemap' : ['schemas/*.xsd']},
     install_requires=[
-        'lxml',
+        'lxml', 'iso8601'
     ]
 )
